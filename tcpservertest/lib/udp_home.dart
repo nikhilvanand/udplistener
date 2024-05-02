@@ -28,7 +28,7 @@ class _UdpHomeState extends State<UdpHome> {
   var detinationAddress = InternetAddress("255.255.255.255");
   var multicastIpList = <String>{};
   Socket? socket;
-  var data = <String, dynamic>{};
+  String data = '';
   int udpCommandPort = 8889;
 
   String? propertyId;
@@ -44,7 +44,7 @@ class _UdpHomeState extends State<UdpHome> {
       txtOutgoing; // = TextEditingController();
   @override
   void initState() {
-    txtMsg = TextEditingController();
+    txtMsg = TextEditingController(text: sharedPrefs.sendMsg);
     txtIncome = TextEditingController(text: sharedPrefs.incomePort);
     txtOutgoing = TextEditingController(text: sharedPrefs.outcomePort);
     NetworkInfo().getWifiIP().then((value) {
@@ -75,9 +75,9 @@ class _UdpHomeState extends State<UdpHome> {
         if (dg.address.address != myIpAddress) {
           recData = utf8.decode(dg.data);
           try {
-            data = json.decode(utf8.decode(dg.data));
+            data = utf8.decode(dg.data);
             listUpdate.value++;
-            statusMessage.add(MsgFormat(type: 0, data: '$data'));
+            statusMessage.add(MsgFormat(type: 0, data: data));
           } on Exception {
             print('Invalid Json');
           }
@@ -93,6 +93,14 @@ class _UdpHomeState extends State<UdpHome> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: [
+          IconButton(
+              onPressed: () {
+                statusMessage.clear();
+                listUpdate.value = 0;
+              },
+              icon: const Icon(Icons.delete))
+        ],
       ),
       body: Column(
         children: [
@@ -152,7 +160,7 @@ class _UdpHomeState extends State<UdpHome> {
                 valueListenable: listUpdate,
                 builder: (context, v, c) {
                   var listStats = statusMessage.reversed.toList();
-                  txtMsg.text = json.encode(echoResponse.toJson());
+                  // txtMsg.text = json.encode(echoResponse.toJson());
                   return Padding(
                     padding: const EdgeInsets.all(20.0),
                     child: Column(
@@ -191,46 +199,78 @@ class _UdpHomeState extends State<UdpHome> {
                   );
                 }),
           ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            height: 100,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    style: Theme.of(context).textTheme.titleSmall,
+                    controller: txtMsg,
+                    maxLines: 3,
+                  ),
+                ),
+                const SizedBox(width: 20),
+                SizedBox(
+                  width: 80,
+                  height: double.maxFinite,
+                  child: IconButton(
+                      onPressed: () {
+                        udpResponseSocket?.send(utf8.encode(txtMsg.text),
+                            detinationAddress, udpCommandPort);
+                        statusMessage
+                            .add(MsgFormat(type: 1, data: txtMsg.text));
+                        listUpdate.value++;
+                        sharedPrefs.sendMsg = txtMsg.text;
+                      },
+                      icon: const Icon(Icons.send)),
+                )
+              ],
+            ),
+          ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).colorScheme.error,
-        onPressed: () {
-          statusMessage.clear();
-          listUpdate.value = 0;
-        },
-        child:
-            Icon(Icons.delete, color: Theme.of(context).colorScheme.onPrimary),
-      ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        height: 100,
-        child: Row(
-          children: [
-            Expanded(
-              child: TextField(
-                style: Theme.of(context).textTheme.titleSmall,
-                controller: txtMsg,
-                maxLines: 3,
-              ),
-            ),
-            const SizedBox(width: 20),
-            SizedBox(
-              width: 80,
-              height: double.maxFinite,
-              child: IconButton(
-                  onPressed: () {
-                    udpResponseSocket?.send(utf8.encode(txtMsg.text),
-                        detinationAddress, udpCommandPort);
-                    statusMessage.add(MsgFormat(type: 1, data: txtMsg.text));
-                    //statusMessage.add();
-                    listUpdate.value++;
-                  },
-                  icon: const Icon(Icons.send)),
-            )
-          ],
-        ),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+      // floatingActionButtonLocation:
+      //     FloatingActionButtonLocation.miniCenterFloat,
+      // floatingActionButton: FloatingActionButton(
+      //   backgroundColor: Theme.of(context).colorScheme.error,
+      //   onPressed: () {
+      //     statusMessage.clear();
+      //     listUpdate.value = 0;
+      //   },
+      //   child:
+      //       Icon(Icons.delete, color: Theme.of(context).colorScheme.onPrimary),
+      // ),
+      // bottomNavigationBar: Container(
+      //   padding: const EdgeInsets.symmetric(horizontal: 20),
+      //   height: 100,
+      //   child: Row(
+      //     children: [
+      //       Expanded(
+      //         child: TextField(
+      //           style: Theme.of(context).textTheme.titleSmall,
+      //           controller: txtMsg,
+      //           maxLines: 3,
+      //         ),
+      //       ),
+      //       const SizedBox(width: 20),
+      //       SizedBox(
+      //         width: 80,
+      //         height: double.maxFinite,
+      //         child: IconButton(
+      //             onPressed: () {
+      //               udpResponseSocket?.send(utf8.encode(txtMsg.text),
+      //                   detinationAddress, udpCommandPort);
+      //               statusMessage.add(MsgFormat(type: 1, data: txtMsg.text));
+      //               //statusMessage.add();
+      //               listUpdate.value++;
+      //             },
+      //             icon: const Icon(Icons.send)),
+      //       )
+      //     ],
+      //   ),
+      // ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

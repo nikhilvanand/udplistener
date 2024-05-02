@@ -165,7 +165,7 @@ class _TcpHomeState extends State<TcpHome> {
       txtOutgoing; // = TextEditingController();
   @override
   void initState() {
-    txtMsg = TextEditingController();
+    txtMsg = TextEditingController(text: sharedPrefs.sendMsg);
     txtServerIp = TextEditingController(text: sharedPrefs.tcpServerIp);
     txtOutgoing = TextEditingController(text: sharedPrefs.tcpPort);
     NetworkInfo().getWifiIP().then((value) {
@@ -330,6 +330,7 @@ class _TcpHomeState extends State<TcpHome> {
               child: IconButton(
                   onPressed: () {
                     socket?.add(utf8.encode(json.encode(txtMsg.text)));
+                    sharedPrefs.sendMsg = jsonEncode(txtMsg.text);
                   },
                   icon: const Icon(Icons.send)),
             )

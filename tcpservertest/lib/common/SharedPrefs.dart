@@ -4,7 +4,8 @@ class SharedPrefs {
   static const _ucpIncomePortKey = 'incomePort';
   static const _udpOutcomePortKey = 'outcomePort';
   static const _tcpServerKey = 'tcpServerKey';
-  static const _tcpPortKey = 'tcpPortKey';
+  static const _tcpPortKey = 'tcpPortKey'; //_sendMsgKey
+  static const _sendMsgKey = 'msgKey'; //
   static const _themeKey = 'thememode';
   static late final SharedPreferences _sharedPrefs;
   factory SharedPrefs() => SharedPrefs._internal();
@@ -33,6 +34,11 @@ class SharedPrefs {
   String get tcpPort => _sharedPrefs.getString(_tcpPortKey) ?? "8890";
   set tcpPort(String value) {
     _sharedPrefs.setString(_tcpPortKey, value);
+  }
+
+  String get sendMsg => _sharedPrefs.getString(_sendMsgKey) ?? "{data:8890}";
+  set sendMsg(String value) {
+    _sharedPrefs.setString(_sendMsgKey, value);
   }
 
   bool get themeMode => _sharedPrefs.getBool(_themeKey) ?? false;
